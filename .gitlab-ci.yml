@@ -1,0 +1,4 @@
+include:
+  - project: NABP/DSCSA/pulse.app.pipeline/app-pipeline
+    ref: main
+    file: 'pulse-searchprofile-ci.yml'

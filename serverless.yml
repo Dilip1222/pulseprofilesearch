@@ -1,0 +1,73 @@
+# serverless build and deploy config -- Jayram
+#----------------------------------------
+service: profilesearch-v1
+frameworkVersion: '3'
+useDotenv: true
+deprecationNotificationMode: warn:summary
+
+#----------------------------------------
+
+frameworkVersion: '3'
+useDotenv: true
+deprecationNotificationMode: warn:summary
+
+#----------------------------------------
+
+provider:
+  name: aws
+  runtime: java11
+  region: us-east-1
+  endpointType: REGIONAL 
+  stage: ${env:STAGE_INDI}
+  disableRollback: false
+  deploymentMethod: direct
+  deploymentPrefix: ${env:STAGE_INDI}/pulse-app
+  deploymentBucket:
+    name: ${env:S3_BUCKET}
+    versioning: true
+    # artifactPrefix: ${self:service}/${timestamp}
+
+  memorySize: 2048
+  timeout: 30
+
+#----------------------------------------
+
+package:
+  artifact: target/${env:ARTIFACT_ID}-${env:VERSION}.jar
+
+#----------------------------------------
+
+functions:
+  profilesearch:
+    handler: com.nabp.pulse.profilesearch.handler.LambdaHandler::handleRequest
+    role: arn:aws:iam::716027697793:role/pulse-lambda-execution-role
+    # logGroup: arn:aws:logs:us-east-1:716027697793:log-group:/aws/lambda/pulse-dev-profilesearch:*
+    name: pulse-${env:STAGE_INDI}-${self:service}
+    description: Funcion deployed by commit-${env:TAG_NAME} ver-${env:VERSION}
+    environment:
+      "SPRING_PROFILES_ACTIVE": ${env:STAGE_INDI}
+    
+    vpc:
+      securityGroupIds:
+        - sg-05e158d40640ed53c
+      subnetIds:
+        - subnet-083c8545d712db360
+        - subnet-0a0f56bf02e6153a8
+
+#----------------------------------------
+# resources:
+#   Resources:
+#     ApiGatewayRestApi:
+#       Type: AWS::ApiGateway::RestApi
+#       Properties:
+#         Name: ${env:STAGE_INDI}-profilesearch-v2
+#         Description: Deployed by pipeline-${env:VERSION}
+    
+    # ApiGatewayDeployment:
+    #   Type: AWS::ApiGateway::Deployment
+    #   DependsOn: ApiGatewayRestApi
+    #   Properties:
+    #     RestApiId: rr245pci60
+    #     StageName: ${env:STAGE_INDI}
+
+#----------------------------------------
